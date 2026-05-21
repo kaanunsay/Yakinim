@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/services/auth_service.dart';
 import 'core/services/cobrowse_service.dart';
+import 'features/auth/screens/giris_ekrani.dart';
 import 'features/yasli/screens/yasli_ana_sayfa.dart';
+import 'features/akraba/screens/akraba_ana_sayfa.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,21 +31,34 @@ void main() async {
 
   await CobrowseService.initialize();
 
+  final kullanici = await AuthService.girisKontrol();
+
   runApp(
-    const ProviderScope(
-      child: YakinimApp(),
+    ProviderScope(
+      child: YakinimApp(kullanici: kullanici),
     ),
   );
 }
 
 class YakinimApp extends StatelessWidget {
-  const YakinimApp({super.key});
+  final Map<String, String>? kullanici;
+  const YakinimApp({super.key, this.kullanici});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    Widget anaSayfa;
+
+    if (kullanici == null) {
+      anaSayfa = const GirisEkrani();
+    } else if (kullanici!['rol'] == 'yasli') {
+      anaSayfa = const YasliAnaSayfa();
+    } else {
+      anaSayfa = const AkrabaAnaSayfa();
+    }
+
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: YasliAnaSayfa(),
+      home: anaSayfa,
     );
   }
 }
